@@ -1,0 +1,76 @@
+<header>
+	<div class="header-content">
+		<div class="header-item">
+			<?php include('logo.phtml'); ?>
+		</div>
+		<div class="header-item input-item">
+			<input class="main-input-header" type="text">
+		</div>
+		<?php
+
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/php/constants.php';
+			require_once PHPROOT . '/authorized.php';
+
+			$query_data = [
+				'redirect_url' => $_SERVER['REQUEST_URI']
+			];
+
+			if (check_auth()) {
+
+				$user_token = $_COOKIE['ganymede_token'];
+				$logout_query = ['token' => $user_token] + $query_data;
+
+				echo
+					'<div class="header-item">
+						<a class="logout-anchor" href="/logout?' . http_build_query($logout_query) . '">
+							Выйти
+						</a>
+					</div>';
+
+			} else {
+
+				echo
+					'<div class="header-item">
+						<a href="/login?' . http_build_query($query_data) . '">Войти</a>
+					</div>';
+
+			}
+
+		?>
+	</div>
+	<?php
+
+		function up_clear_link($href, $clear_link_order) {
+
+			foreach ($clear_link_order as $clear_pattern) {
+				
+				$temp_link = $href;
+				$href = preg_replace($clear_pattern, '', $href);
+
+				if ($temp_link != $href) {
+
+					break;
+
+				}
+
+			}
+
+			return $href;
+
+		};
+
+		$curr_href = $_SERVER['REQUEST_URI'];
+		$back_href =
+			up_clear_link($curr_href, [
+				'/\?.+?$/',
+				'/(?<=\/).+\/.*?$/'
+			]);
+
+		if ($back_href != $curr_href) {
+		
+			include('back-button.phtml');
+
+		}
+
+		?>
+</header>

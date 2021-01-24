@@ -1,0 +1,62 @@
+<div task_id="<?=@$task['task_id'];?>" class="task-item">
+	<span class="task-title" errno="<?=@$task['errno'];?>">
+		<?php
+
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/php/constants.php';
+			require_once PHPROOT . '/tests-module.php';
+
+			global $task_option_msg_map;
+
+			if (isset($task['errno'])) {
+
+				echo $task_option_msg_map[$task['errno']];
+
+			} else {
+
+				echo 'Вопрос ' . @$task_number . ' из ' . @$tasks_count;
+
+			}
+
+		?>	
+	</span>
+	<p class="task-definition"><?=@$task['task'];?></p>
+	<div class="input-container">
+		<?php
+
+			$input_type = $task['multiple'] ? 'checkbox' : 'radio';
+
+			foreach($task['options'] as $option_index => $option) {
+
+				$input_checked = false;
+
+				if (isset($task['selected_options'])) {
+
+					foreach($task['selected_options'] as $selected_option) {
+
+						if ($selected_option['option_index'] == $option_index) {
+
+							$input_checked = true;
+
+						}
+
+					}
+
+				}
+
+				echo
+					'<div class="input-item">
+						<label class="input-label">
+							<input
+								option_index="' . $option_index . '"
+								type="' . $input_type . '"
+								name="' . $task_number . '"
+								' . ($input_checked ? 'checked' : '') . '>
+							' . $option . '
+						</label>' . '
+					</div>';
+
+			}
+
+		?>
+	</div>
+</div>

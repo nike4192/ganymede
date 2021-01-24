@@ -1,0 +1,270 @@
+<header>
+	<script src="/js/query-script.js"></script>
+	<style>
+		
+		.header-item {
+			position: relative;
+		}
+		.header-item .input-item {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+		.main-input-header {
+			position: relative;
+		}
+		.search-container {
+			display: none;
+		}
+		.search-container[open] {
+			display: block;
+		}
+		.search-container {
+			position: absolute;
+			margin-top: 8px;
+			left: 16px; right: 16px;
+			box-sizing: border-box;
+			font-family: Montserrat;
+			max-height: 140px;
+			border-radius: 4px;
+			background-color: white;
+			box-shadow: 0 0 0 1px #555;
+			min-height: 35px;
+			overflow-y: auto;
+		}
+		.search-container:empty::after {
+			content: 'Пусто';
+			color: lightgray;
+			padding: .5em .8em;
+			position: relative;
+			display: block;
+			height: 35px;
+			box-sizing: border-box;
+		}
+		.search-container::-webkit-scrollbar {
+		    width: 8px;
+		}
+		.search-container::-webkit-scrollbar-thumb {
+		  background-color: lightgray;
+		  border-radius: 4px;
+		}
+		.search-container a {
+			padding: .5em .8em;
+			position: relative;
+			display: block;
+			height: 35px;
+			box-sizing: border-box;
+			text-decoration: none;
+			color: black;
+			outline: none;
+		}
+		.search-container a:focus::after {
+			content: '';
+			position: absolute;
+			top: 0; right: 0; bottom: 0; left: 0;
+			box-shadow: inset 0 0 0 2px #29f;
+		}
+
+	</style>
+	<div class="header-content">
+		<div class="header-item">
+			<?php include('logo.phtml'); ?>
+		</div>
+		<div class="header-item input-item">
+			<input class="main-input-header" type="text">
+			<script>
+				
+				var mainInput = document.querySelector('.main-input-header');
+
+				if (mainInput) {
+
+					var dirs = [
+						'/theorems',
+						'/definitions',
+						'/formulas'
+					];
+
+					var searchContainer = qElement('.search-container');
+
+					mainInput.addEventListener('focus', function() {
+
+						this.selected = true;
+						searchContainer.setAttribute('open', '');
+
+					} );
+
+					mainInput.addEventListener('blur', function(e) {
+
+						console.log(e, document.activeElement);
+
+						if (e.relatedTarget &&
+							mainInput.parentElement.contains(e.relatedTarget)) {
+
+							return;
+
+						}
+
+						searchContainer.removeAttribute('open');
+
+					})
+
+					window.addEventListener('mousedown', function(e) {
+
+						if (mainInput.parentElement.contains(e.target)) {
+
+							return;
+
+						}
+
+						searchContainer.removeAttribute('open');
+						mainInput.selected = false;
+
+					} )
+
+					mainInput.addEventListener('input', function() {
+
+						if (this.controller) {
+
+  							this.controller.abort();
+
+						}
+
+						var controller = new AbortController();
+						var signal = controller.signal;
+
+						searchContainer.innerHTML = '';
+
+						var value = this.value;
+
+						if (!value) return;
+
+						dirs.forEach(function(dir) {
+
+							console.log(dir);
+
+							var href = location.origin + dir + '?query=' + value + '&format=json';
+
+							fetch(href, {signal})
+							.then(r => r.text())
+							.then(function(x) {
+
+								try {
+
+									var json = JSON.parse(x);
+									if (json) {
+
+										if (Array.isArray(json)) {
+
+											json.forEach(function(data) {
+
+												insertData(data, searchContainer);
+
+											} )
+
+										} else {
+
+											insertData(json, searchContainer);
+
+										}
+
+									}
+
+								} catch( e ) {
+
+									console.log(x);
+
+								}
+
+							} );
+						
+						} );
+
+						this.controller = controller;
+
+					} );
+
+					mainInput.parentElement.append(searchContainer);
+
+				}
+
+				function insertData(data, searchContainer) {
+
+					var resultItem = qElement('a.result-item');
+					resultItem.href = data['href'];
+					resultItem.textContent = data['title'];
+
+					searchContainer.append(resultItem);
+
+				}
+
+			</script>
+		</div>
+		<?php
+
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/php/constants.php';
+			require_once PHPROOT . '/authorized.php';
+
+			$query_data = [
+				'redirect_url' => $_SERVER['REQUEST_URI']
+			];
+
+			if (check_auth()) {
+
+				$user_token = $_COOKIE['ganymede_token'];
+				$logout_query = ['token' => $user_token] + $query_data;
+
+				echo
+					'<div class="header-item">
+						<a class="logout-anchor" href="/logout?' . http_build_query($logout_query) . '">
+							Выйти
+						</a>
+					</div>';
+
+			} else {
+
+				echo
+					'<div class="header-item">
+						<a href="/login?' . http_build_query($query_data) . '">Войти</a>
+					</div>';
+
+			}
+
+		?>
+	</div>
+	<?php
+
+		function up_clear_link($href, $clear_link_order) {
+
+			foreach ($clear_link_order as $clear_pattern) {
+				
+				$temp_link = $href;
+				$href = preg_replace($clear_pattern, '', $href);
+
+				if ($temp_link != $href) {
+
+					break;
+
+				}
+
+			}
+
+			return $href;
+
+		};
+
+		$curr_href = $_SERVER['REQUEST_URI'];
+		$back_href =
+			up_clear_link($curr_href, [
+				'/\?.+?$/',
+				'/(?<=\/).+\/.*?$/'
+			]);
+
+		if ($back_href != $curr_href) {
+		
+			include('back-button.phtml');
+
+		}
+
+		?>
+</header>

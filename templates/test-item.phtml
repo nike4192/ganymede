@@ -1,0 +1,26 @@
+<div class="article-item">
+	<a class="item-link" href="<?=@$test_href?>">
+		<span class="link_title"><?=@$test_title?></span>
+	</a>
+	<div class="item-info">
+		<?php
+
+			if (isset($attempts) && count($attempts)) {
+
+				$attempts_count = count($attempts);
+				$data_json = json_encode($attempts);
+				
+				echo '
+					<div class="attempts-item">
+						<button class="attempts-button">
+							Попытки: ' . $attempts_count . '
+						</button>
+						<data>' . $data_json . '</data>
+					</div>';
+
+			}
+
+		?>
+		<span class="tasks_count" title="Количество вопросов"><?=@$tasks_count;?></span>
+	</div>
+</div>

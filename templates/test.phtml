@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<?php
+
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/php/constants.php';
+	require_once PHPROOT . '/renderer.php';
+	require_once PHPROOT . '/authorized.php';
+	require_once PHPROOT . '/crypto.php';
+
+	$authorized = check_auth();
+
+?>
+<html>
+	<head>
+		<title></title>
+
+		<link rel="stylesheet" href="/css/main.css">
+
+		<script src="/js/query-script.js"></script>
+
+		<style>
+			
+			.test-article {
+				font-family: Montserrat;
+			}
+
+			.test-heading {
+				text-align: center;
+			}
+
+
+		</style>
+		<style>
+
+			.task-title[errno = "0"] { color: var(--main-green-color); } /* Right */
+			.task-title[errno = "1"] { color: crimson; } /* Wrong */
+			.task-title[errno = "2"] { color: yellow; } /* Partially true*/
+			.task-title[errno = "3"] { color: gray; } /* Empty answer */
+			
+			.task-item {
+				margin-bottom: 2em;
+			}
+			.task-title {
+				font-size: 0.8em;
+				font-weight: 600;
+			}
+			.task-definition {
+				margin: 0.5em 0;
+				font-size: 1.2em;
+				font-weight: 600;
+			}
+
+			.input-item {
+				margin: 0.3em 0;
+				font-weight: 600;
+			}
+
+			a#anew-test-link {
+				color: black;
+				text-decoration: none;
+			}
+
+			#check-test-button,
+			#anew-test-link {
+				margin: 1em;
+				padding: .6em 2em;
+				font-size: 1.2em;
+				border: none;
+				font-weight: 600;
+				background: #51C9C2;
+				border-radius: 2em;
+				box-shadow: 0px 4px 4px 0px #00000044;
+			}
+			#check-test-button:active,
+			#anew-test-link:active {
+				box-shadow: none;
+			}
+
+		</style>
+	</head>
+	<body>
+		<?php include('header.phtml'); ?>
+		<div class="container">
+			<main>
+				<article test_id="<?=@$test['test_id'];?>" class="test-article">
+					<h2 class="test-heading"><?=@$test['test_title'];?></h2>
+					<?php
+
+						if (!$authorized) {
+
+							$data = ['message' => 'Проверка тестов только для авторизованных пользователей'];
+
+							Renderer::render('notification.phtml', $data);
+
+						}
+
+						if (isset($attempt)) {
+
+							$data = ['message' => @$attempt['data']['score'] . '/100 | ' .@$attempt['datetime']];
+
+							Renderer::render('notification.phtml', $data);
+
+						}
+
+					?>
+					<section>
+						<?php
+
+							require_once PHPROOT . '/js-lib.php';
+
+							if (isset($test['tasks'])) {
+
+								$counter = 0;
+								$tasks = $test['tasks'];
+								$tasks_count = count($tasks);
+
+								if (isset($attempt)) { // merge tasks with attempt_data
+
+									$attempt_tasks = $attempt['data']['tasks'];
+
+									foreach ($attempt_tasks as $akey => $avalue) {
+
+										foreach ($tasks as $tkey => &$tvalue) {
+
+											if ($avalue['task_id'] == $tvalue['task_id']) {
+
+												$avalue['selected_options'] = $avalue['options'];
+												unset($avalue['options']);
+
+												$tvalue += $avalue;
+
+											}
+
+										}
+
+									}
+
+									js::insert_vars(['tasks' => $tasks]);
+
+								}
+
+								foreach ($tasks as $task) {
+
+									$data = [
+										'task' => $task,
+										'task_number' => ++$counter,
+										'tasks_count' => $tasks_count
+									];
+
+									Renderer::render('task-item.phtml', $data);
+
+								}
+
+							}
+
+						?>
+					</section>
+					<section class="flex flex-jc-center">
+						<?php
+
+							if ($authorized) {
+
+								if (isset($attempt)) {
+
+									$query_data = ['test_id' => $test['test_id']];
+
+									echo '
+										<a id="anew-test-link" href="?' . http_build_query($query_data) . '">
+											Заново пройти тест
+										</a>';
+
+
+								} else {
+
+									echo '
+										<button id="check-test-button">Завершить тест</button>';
+
+								}
+
+							}
+
+						?>
+					</section>
+				</article>
+			</main>
+		</div>
+
+		<?php if (!$authorized): ?>
+
+		<script>
+			
+			var containerElement = QS('[test_id]');
+			
+			var checkTestButton = QS('#check-test-button');
+			if (!checkTestButton) {
+
+				containerElement.querySelectorAll('input')
+				.forEach( function(inputElement) {
+
+					inputElement.disabled = true;
+
+				} );
+
+			}
+
+		</script>
+
+		<?php endif; ?>
+
+		<?php if ($authorized): ?>
+
+		<script>
+
+			var testContainer = QS('[test_id]');
+			
+			var checkTestButton = QS('#check-test-button');
+			var anewTestLink = qElement('a#anew-test-link{Заново пройти тест}');
+
+			anewTestLink.href = '?test_id=' + testContainer.getAttribute('test_id');
+
+			if (checkTestButton) {
+
+				checkTestButton.onclick = checkTestButtonOnclick;
+
+			} else {
+
+				stateInputs(testContainer, false);
+
+			}
+
+			function checkTestButtonOnclick() {
+
+				var testContainer = QS('[test_id]');
+
+				var testData = getTestData(testContainer);
+
+				stateInputs(testContainer, false);
+
+				sendTestData(testData, function(e, data) {
+
+					switch (e.type) {
+
+						case 'then':
+
+							if (!data['errno']) {
+
+								var message = 'Оценка: ' + data['score'] + '/100'
+
+								alert(message);
+
+								displayTestData(data, testContainer);
+
+								var parentElement = checkTestButton.parentElement;
+								checkTestButton.remove();
+								parentElement.append(anewTestLink);
+
+							} else {
+
+								alert(data['error_msg']);
+
+							}
+
+							break;
+
+						case 'catch':
+
+							alert(e.error || 'Непредвиденная ошибка');
+
+							break;
+
+					}
+
+				} );
+
+				
+			}
+
+			function stateInputs(containerElement, active = true) {
+
+				containerElement.querySelectorAll('input')
+				.forEach( function(inputElement) {
+
+					inputElement.disabled = !active;
+
+				} );
+
+			}
+
+
+			function getTestData(testContainer) {
+
+				var testData = {};
+
+				var testId = testContainer.getAttribute('test_id');
+
+				testData['test_id'] = testId;
+				testData['tasks'] = [];
+
+				testContainer.querySelectorAll('[task_id]').forEach(function(taskContainer) {
+
+					var taskId = taskContainer.getAttribute('task_id');
+					var taskData = {task_id: taskId, option_indexes: []};
+
+					taskContainer.querySelectorAll('[option_index]:checked').forEach(function(optionContainer) {
+
+						var optionData = optionContainer.getAttribute('option_index');
+						taskData['option_indexes'].push(optionData);
+
+					});
+
+					testData['tasks'].push(taskData);
+
+				});
+
+				return testData;
+
+			}
+
+
+			function displayTestData(testData, testContainer) {
+
+				testData.tasks.forEach(function(taskData) {
+
+					var taskId = taskData['task_id'];
+
+					var taskContainer = testContainer.querySelector('[task_id="' + taskId + '"]');
+					var taskTitle = taskContainer.querySelector('.task-title');
+
+					taskTitle.setAttribute('errno', taskData['errno']);
+					taskTitle.textContent = taskData['msg'];
+
+				});
+
+			}
+
+
+			function sendTestData(testData, callback) {
+
+				fetch('send-test.php', {
+
+					method: 'POST',
+					headers: {'Content-Type':'application/json'},
+					body: JSON.stringify(testData)
+
+				})
+				.then( r => r.text() )
+				.then( function(x) {
+
+					try {
+
+						var data = JSON.parse(x);
+
+						callback({ type: 'then' }, data);
+
+					} catch (e) {
+						
+						callback({ type: 'catch', error: 'Не удалось преобразовать в JSON' });
+						
+						console.log(x);
+
+					}
+
+				} )
+				.catch( function(x) {
+
+					callback({ type: 'catch' });
+
+				} )
+				.finally( function(x) {
+
+					callback({ type: 'finally' });
+
+				} );
+
+
+			}
+
+		</script>
+
+		<?php endif; ?>
+
+	</body>
+</html>

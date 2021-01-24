@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+
+		<script src="/js/query-script.js"></script>
+
+
+		<link rel="stylesheet" href="/css/main.css">
+		<link rel="stylesheet" href="/css/svg-main.css">
+		<link rel="stylesheet" href="/css/auth-form.css">
+
+		<?php
+
+			require_once $_SERVER['DOCUMENT_ROOT'] . '/php/constants.php';
+			require_once PHPROOT . '/js-lib.php';
+
+			if (isset($valid_errors))
+				js::insert_vars(['valid_errors' => $valid_errors]);
+
+		?>
+
+		<style>
+
+			.valid-error {
+				position: relative;
+				margin: 10px 0;
+				padding: 0.5em;
+				background: #f99;
+			}
+
+			.valid-error > .close-button {
+				-webkit-appearance: none;
+				border: none;
+				padding: 2px;
+				position: absolute;
+				background: none;
+				top: 0; right: 0;
+			}
+
+			.close-button > svg {
+				stroke: #0006;
+			}
+
+		</style>
+	</head>
+	<body>
+		<main>
+			<div class="logo-wrap">
+				<?php include(DOCROOT . '/templates/logo.phtml'); ?>
+			</div>
+			<div class="form-box">
+				<form class="auth-form" method="post">
+					<input type="email" placeholder="Email" name="email" value="<?=@$email;?>">
+					<input type="text" placeholder="Login" name="login" required value="<?=@$login;?>">
+					<input type="password" placeholder="Password" name="password" required value="<?=@$password;?>">
+
+					<hr>
+
+					<input type="submit" value="Зарегестрироваться">
+				</form>
+			</div>
+		</main>
+		<svg source>
+			<symbol id="close-icon" viewBox="0 0 32 32">
+				<path d="M4 4 L28 28 M4 28 L28 4" stroke stroke-width="2">
+			</symbol>
+		</svg>
+		<script>
+
+			var mainElement = document.querySelector('main');
+			var form = document.querySelector('form');
+
+			if ('valid_errors' in window && Array.isArray(valid_errors)) {
+
+				valid_errors.forEach( function($error) {
+
+					var errElement = qElement('.valid-error');
+
+					var spanElement = qElement('span');
+					spanElement.innerHTML = $error['err_msg'];
+
+					var closeButton = qElement('button.close-button > svg[icon][size="4"] > use[href="#close-icon"]');
+					closeButton.addEventListener('click', function() {
+
+						this.parentElement.remove();
+
+					} );
+
+					errElement.append(spanElement, closeButton);
+
+					mainElement.append(errElement);
+
+				} );
+
+			}
+
+		</script>
+	</body>
+</html>

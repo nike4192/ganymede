@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<?php
+
+require_once $_SERVER['DOCUMENT_ROOT'] . '/php/constants.php';
+require_once PHPROOT . '/renderer.php';
+require_once PHPROOT . '/def-module.php';
+
+$GLOBALS['PAGE_DEFS_COUNT'] = 50;
+$GLOBALS['DEFS_COUNT'] = get_defs_count();
+
+
+function print_defs_page($page_number) {
+
+	global $DEFS_COUNT, $PAGE_DEFS_COUNT;
+
+	$max_page_counts = ceil($DEFS_COUNT / $PAGE_DEFS_COUNT);
+
+	$page_number = min($page_number, $max_page_counts);
+	$page_index = $page_number - 1;
+
+	$offset = $page_index * $PAGE_DEFS_COUNT;
+	$count = $PAGE_DEFS_COUNT;
+
+	$defs_list = get_defs_list($offset, $count);
+
+	foreach ($defs_list as $def_data) {
+
+		$query_data = ['def_id' => $def_data['def_id']];
+
+		$def_data['def_href'] = '?' . http_build_query($query_data);
+
+		Renderer::render('def-item.phtml', $def_data);
+
+	}
+
+}
+
+?>
+<html>
+	<head>
+		<title></title>
+
+		<link rel="stylesheet" href="/css/main.css">
+
+		<style>
+
+			main {
+				padding-bottom: 2em !important;
+			}
+
+			.article-item {
+			}
+			
+			.item-link .item-image {
+				max-width: 100%;
+				max-height: 100%;
+			}
+
+			.cards-container {
+				display: grid;
+				gap: 16px;
+				grid-template-columns: repeat(4, 1fr);
+			}
+
+			.item-link .image-container {
+				flex-grow: 1;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			.item-link {
+				width: 100%;
+				height: 100%;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+
+		</style>
+
+	</head>
+	<body>
+		<?php include('header.phtml'); ?>
+		<div class="container">
+			<main>
+				<article class="main-article">
+					<h2 class="article-heading">Определения</h2>
+					<section class="cards-container">
+						<?php
+
+							$page_number = isset($_GET['page']) ? $_GET['page'] : 1;
+
+							print_defs_page($page_number);
+
+						?>
+					</section>
+				</article>
+			</main>
+		</div>
+	</body>
+</html>

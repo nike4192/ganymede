@@ -1,0 +1,152 @@
+:root {
+	--main-beige-color: #eee9cf;
+	--main-green-color: #056367;
+}
+
+html, body {
+	margin: 0;
+}
+
+@font-face {
+	font-family: Montserrat;
+	font-weight: 400;
+	src: url('/fonts/Montserrat-Regular.ttf');
+}
+@font-face {
+	font-family: Montserrat;
+	font-weight: 600;
+	src: url('/fonts/Montserrat-SemiBold.ttf');
+}
+
+@font-face {
+	font-family: Roboto;
+	font-weight: 400;
+	src: url('/fonts/Roboto-Regular.ttf');
+}
+
+body {
+	padding-top: 60px;
+	overflow-y: scroll;
+}
+
+body > .container {
+	margin: 0 auto;
+	position: relative;
+	width: 100%;
+	max-width: 1000px;
+}
+
+body > .container > main {
+	padding: 0 16px;
+}
+
+/* HEADER START */
+
+header {
+	position: fixed;
+	left: 0;
+	top: 0;
+	right: 0;
+	height: 60px;
+	background-color: white;
+	box-shadow: inset 4px #eee9cf;
+	z-index: 1;
+}
+.header-content {
+	margin: 0 auto;
+	position: relative;
+	width: 100%;
+	height: 100%;
+	max-width: 1000px;
+	display: flex;
+	align-items: center;
+}
+.header-item {
+	padding: 0 16px;
+	position: relative;
+}
+.header-item.input-item {
+	flex-grow: 2;
+}
+.main-input-header {
+	padding: 0.2rem 1rem;
+	width: 100%;
+	box-sizing: border-box;
+	border: 4px solid #eee9cf;
+	border-radius: 20px;
+	font-size: 1.2rem;
+	outline: none;
+}
+.header-item > a {
+	text-align: center;
+	font-family: Montserrat;
+	text-decoration: none;
+	color: #056367;
+}
+a.logout-anchor {
+	color: crimson;
+}
+
+/* HEADER END */
+
+.viewbox > main {
+	position: relative;
+
+	margin: 0 auto;
+	padding: 0 8px;
+	width: 900px;
+	height: 100%;
+	max-width: 100%;
+	min-height: 300px;
+
+	box-sizing: border-box;
+	overflow: auto;
+
+}
+
+.viewbox {
+	position: fixed;
+	top: 54px;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	overflow: auto;
+}
+
+
+.flex {
+	display: flex;
+}
+.flex-jc-center {
+	justify-content: center;
+}
+
+
+.notification {
+	padding: .4em .8em;
+	background-color: #eee;
+	border-radius: 4px;
+}
+
+
+main .main-article {
+	font-family: Montserrat;
+}
+article .article-heading {
+	text-align: center;
+}
+
+.article-item {
+	padding: 8px;
+	border: 4px solid var(--main-beige-color);
+	border-radius: 4px;
+}
+
+section.list-container .article-item {
+	margin: 8px 0;
+}
+
+.article-item .item-link {
+	color: black;
+	text-decoration: none;
+}

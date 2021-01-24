@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title><?=$PAGE_TITLE?></title>
+		<link rel ="stylesheet" href="styles.css">
+		<script src="path/to/file.js"></script>
+
+		<style>
+			/* тэг style (глобальные стили) пишется в head */
+
+			body {
+            	background-color: #f8eedb; 
+			/* атрибутами для стилей не пользуются типа bgcolor или align, только css (так положено) */
+				background: linear-gradient(to top, #f8eedb, #ffcc36);
+				padding: 10px; 
+			/*	border: 1px solid #333; */
+			
+        }
+
+        header {
+            display: flex;
+            /* flexbox layout */
+            justify-content: center;
+            /* распределение содержимого по центру */
+            align-items: center;
+            /* выравнивание элементов относительно flex-direction [ row ] для строки по вертикали, для колонки по горизонтали */
+
+            position: fixed;
+
+            left: 0;
+            /* растягиваем по сторонам лево/верх/право */
+            top: 0;
+			right: 0;
+			
+			background-color: #ffcc36;
+        }
+
+        .header-item {
+            padding: 8px;
+            /* padding, чтобы элементы были без промежутков, которые бы дал margin */
+        }
+
+        .logo {
+            text-transform: uppercase;
+            /* верхний регистр */
+            letter-spacing: 0.5em;
+            /* расстояние между буквами */
+            font-family: Arial;
+            /* семейство шрифтов или просто шрифт */
+            font-size: 1.2rem;
+            /* размер шрифта */
+			color: #056367;
+			font-weight: 600;
+        }
+
+        .search-input {
+            padding: 0.2rem 0.4rem;
+            /* верх и низ = 0.2rem, лево и право = 0.4rem */
+
+            width: 60vw;
+            /* в данном случае, лучше использовать относительные еденицы vw/vh (view-width/view-height) */
+
+            border: 5px solid #e38a66;
+            /* свойство box-shadow более "вертуозней" */
+
+            border-radius: 20px;
+
+            font-size: 1.2rem;
+
+            outline: none;
+            /* чтобы не отображалось браузерное выделение */
+        }
+
+		.link{
+			margin-top: 20px;
+			margin-left: 14px;
+		}
+
+		.body{
+			margin-right: 80%;
+			margin-left: 30%;
+		}
+
+		</style>
+		
+		<style>
+			.back-button {
+			padding: 0;
+			display: inline-flex;
+			align-items: center;
+			border: none;
+			background: none;
+			outline: none;
+			}
+			.back-button:hover > span {
+			text-decoration: underline;
+			}
+			.back-button > * {
+			display: inline-block;
+			}
+			.back-button > svg {
+			width: 1.2em;
+			height: 1.2em;
+			}
+			.back-button > svg > path {
+			stroke-linejoin: round;
+			stroke-linecap: round;
+			stroke: #232323;
+			stroke-width: 3px;
+			fill: none;
+			}
+			.back-button > span {
+			padding: 0 0.5em;
+			color: #232323;
+			font-family: Arial;
+			text-transform: uppercase;
+			font-style: italic;
+			letter-spacing: 0.1em;
+			}
+
+			.back-button{
+				margin-top: 8em;
+				margin-left: 15.5em;
+				cursor: pointer;
+			}
+
+		</style>
+
+		<style>
+	
+		body{
+			font-family: Times New Roman, "Times New Roman", Times, serif;
+		}
+
+		.wrapper{
+			min-height: 100%;
+			overflow: hidden;
+
+			display: flex;
+			flex-direction: colum;
+		}
+		.container{
+			max-width: 1180px;
+			margin: 0px auto;
+		}
+		.content{
+			flex: 1 1 auto;
+		}
+		.theorem{
+			padding: 50px 0;
+		}
+		.theorem_row{
+			display: flex;
+			flex-wrap: wrap;
+		}
+		.theorem_body{}
+		.theorem_title{
+			text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+			font-size: 40px;
+			margin: 0px 0px 38px 420px;
+			color: #056367;
+		}
+
+		.theorem_list_1{
+			text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+			font-size: 25px;
+			line-height: 22px;
+			padding: 0px 0px 0px 36px;
+			margin: 0px 0px 25px 500px;
+			color: #056367;
+		}
+		.theorem_list_1:last-child{
+			margin: 0;
+		}
+
+		.theorem_list_2{
+			margin: 0px 0px 60px 199px;
+			font-size: 15pt;
+			color: #056367;
+		}
+
+		.theorem_list_3{
+			text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+			font-size: 25px;
+			line-height: 22px;
+			padding: 0px 0px 0px 36px;
+			margin: 0px 0px 50px 465px;
+			color: #056367;
+		}
+		.theorem_list_3:last-child{
+			margin: 0;
+		}
+
+		.theorem_image{
+			position: relative;
+			float: left;
+			/* margin: 445px 0px 0px 0px; */
+			margin: 0px 50px 30px 100px;
+			max-width: 100%;
+		}
+
+		.theorem_list_4{
+			text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+			font-size: 20px;
+			line-height: 22px;
+			padding: 0px 0px 0px 36px;
+			margin: 0px 0px 25px 600px;
+			color: #056367;
+		}
+		.theorem_list_4:last-child{
+			margin: 0;
+		}
+
+		.theorem_list_5{
+			margin: 0px 0px 35px 595px;
+			font-size: 15pt;
+			color: #056367;
+		}
+
+		.theorem_list_6{
+			text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+			font-size: 20px;
+			line-height: 22px;
+			padding: 0px 0px 0px 36px;
+			margin: 0px 0px 15px 600px;
+			color: #056367;
+		}
+		.theorem_list_6:last-child{
+			margin: 0;
+		}
+
+		.theorem_list_7{
+			margin: 0px 0px 35px 595px;
+			font-size: 15pt;
+			color: #056367;
+		}
+
+		.theorem_list_8{
+			text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+			font-size: 20px;
+			line-height: 22px;
+			padding: 0px 0px 0px 36px;
+			margin: 0px 0px 50px 600px;
+			color: #056367;
+		}
+		.theorem_list_8:last-child{
+			margin: 0;
+		}
+
+		.theorem_list_9{
+			line-height: 25px;
+			margin: 50px 50px 15px 70px;
+			font-size: 15pt;
+			color: #056367;
+		}
+
+		.theorem_list_10{
+			margin: 0px 0px 15px 440px;
+			font-size: 15pt;
+			color: #056367;
+		}
+
+		.theorem_list_11{
+			margin: 0px 100px 15px 410px;
+			font-size: 15pt;
+			color: #056367;
+		}
+
+		.theorem_list_12{
+			margin: 0px 0px 15px 440px;
+			font-size: 15pt;
+			color: #056367;
+		}
+
+		.theorem_list_13{
+			margin: 0px 0px 35px 490px;
+			font-size: 15pt;
+			color: #056367;
+		}
+
+		.theorem_list_14{
+			margin: 0px 0px 15px 470px;
+			font-size: 15pt;
+			color: #056367;
+		}
+
+		</style>
+
+		<style>
+			.back-to-too{
+				position: fixed;
+				right: 20px;
+				bottom: 50px;
+				width: 50px;
+				height: 50px;
+				border-color: transparent;
+				border-radius: 50%;
+				background-color: #e38a66;
+				/* display: none; */ 
+				z-index: 100;
+			}
+
+			.back-to-too:hover,
+			.back-to-too:focus{
+				filter: brightness(1.5);
+				outline: none;
+			}
+
+			.back-to-too::before,
+			.back-to-too::after{
+				content: '';
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+			}
+
+			.back-to-too::before{
+				width: 5px;
+				height: 25px;
+				border-top-left-radius: 3px;
+				border-top-right-radius: 3px;
+				background-color: #f5f0f6;
+			}
+
+			.back-to-too::after{
+				width: 15px;
+				height: 15px;
+				transform: translate(-50%, -50%) rotate(45deg);
+				border-top: 5px solid #f5f0f6;
+				border-left: 5px solid #f5f0f6;
+			}
+		</style>
+
+	</head>
+
+	<!-- Макет для theorems, definitions, formulas (задание для Юли) -->
+
+	<body>
+
+		<button class="back-button" onclick="history.back()">
+			<svg viewBox="0 0 32 32">
+				<path d="M24.5 4 L4 16 L24.5 28 Z"></path>
+			</svg>
+			<span>Вернуться</span>
+		</button>
+		
+		<!-- <img src="https://spravochnick.ru/assets/files/articles/math712.png"alt=""/> -->
+		<!--	<a href="#"><img src="1.jpg" alt=""/></a> -->
+
+			
+
+		<a href="#" class="back-to-too"></a>
+			<script>
+				function backToTop(){
+					let button = $('back-to-too');
+
+					$(window).on('scroll', () => {
+						if ($(this).scrollTop() >= 50){
+							button.fadeIn();
+						} else{
+							button.fadeOut();
+						}
+					});
+					
+					button.on('click', (e) => {
+						e.preventDefault();
+						$('html').animate({scrollTop: 0}, 1000);
+					});
+				}
+
+				backToTop();
+
+			</script>
+
+		<div class="wrapper">
+			<div class="content">
+				<div class="theorem">
+					<div class="container">
+						<div class="theorem_row">
+							<div class="theorem_body">
+								<div class="theorem_title">Теорема Пифагора</div>
+									<ul class="theorem_list_1">
+										<p>Теорема</p>
+									</ul>
+										<ul class="theorem_list_2">
+											<p>В прямоугольном треугольнике квадрат гипотенузы равен сумме квадратов катетов.</p>
+										</ul>
+											<ul class="theorem_list_3">
+												<p>Доказательство</p>
+											</ul>
+
+											<div class="theorem_image">
+												<img src="1.jpg" alt=""/>
+											</div>
+
+												<ul class="theorem_list_4">
+													<p>Дано</p>
+												</ul>
+													<ul class="theorem_list_5">
+														<p>Прямоугольный треугольник с катетами a, b и гипотенузой c.</p>
+													</ul>
+														<ul class="theorem_list_6">
+															<p>Доказать</p>
+														</ul>
+															<ul class="theorem_list_7">
+																<p>c<sup>2</sup> = a<sup>2</sup> + b<sup>2</sup></p>
+															</ul>
+																<ul class="theorem_list_8">
+																	<p>Доказательство</p>
+																</ul>
+																	<ul class="theorem_list_9">
+																		<p>Достроим треугольник до квадрата со стороной a + b. Площадь S этого квадрата 
+																			равна (a + b)<sup>2</sup>. С другой стороны, этот квадрат составлен из четырех равных 
+																			прямоугольных треугольников, площадь каждого из которых равна 1/2ab,
+																			 и квадрата со стороной c, поэтому
+																		</p>
+																	</ul>
+																		<ul class="theorem_list_10">
+																			<p>S = 4 <sup>.</sup> 1/2ab + c<sup>2</sup> = 2ab + c<sup>2</sup>.</p>
+																		</ul>
+																			<ul class="theorem_list_11">
+																				<p>Таким образом,</p>
+																			</ul>
+																				<ul class="theorem_list_12">
+																					<p>(a + b)<sup>2</sup> = 2ab + c<sup>2</sup>, откуда</p>
+																				</ul>
+																					<ul class="theorem_list_13">
+																						<p>c<sup>2</sup> = a<sup>2</sup> + b<sup>2</sup>.</p>
+																					</ul>
+																						<ul class="theorem_list_14">
+																							<p>Теорема доказана.</p>
+																						</ul>
+								<div class="what">
+									<div class="container_">
+										<div class="what_row"></div>
+											<div class="what_body">
+											</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<header>
+        	<!-- header - верхушка сайта -->
+
+        	<div class="header-item">
+            	<!-- обертка элементов -->
+           	 <span class="logo">ganymede</span>
+            	<!-- для одного слова обычно использую span -->
+        	</div>
+
+        	<div class="header-item">
+            	<input type="search" class="search-input" />
+            	<!-- поле для ввода типа search -->
+			</div>
+			
+			<div class="text"></div>
+
+		</header>
+		
+		<h2><?=$PAGE_ARTICLE?></h2>
+		<main><?=$PAGE_CONTENT?></main>
+	</body>
+</html>

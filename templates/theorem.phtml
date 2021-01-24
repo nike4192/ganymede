@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<?php
+
+require_once $_SERVER['DOCUMENT_ROOT'] . '/php/constants.php';
+require_once PHPROOT . '/renderer.php';
+require_once PHPROOT . '/js-lib.php';
+
+?>
+<html>
+	<head>
+		<title></title>
+
+		<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3.0.1/es5/tex-mml-chtml.js"></script>
+
+		<link rel="stylesheet" href="/css/main.css">
+
+		<style>
+			
+			.main-article {
+				clear: both;
+			}
+			.theorem-image {
+				float: left;
+			}
+
+			mjx-container {
+				outline: none;
+			}
+
+		</style>
+
+	</head>
+	<body>
+		<?php include('header.phtml');?>
+		<div class="container">
+			<main>
+				<article class="main-article">
+					<h4 class="article-heading"><?= @$theorem['theorem_title']; ?></h4>
+					<section>
+						<img class="theorem-image" src="<?=@$theorem['theorem_image_src'];?>">
+						<p>
+							<?=@$theorem['theorem_content'];?>
+						</p>
+					</section>
+				</article>
+			</main>
+		</div>
+	</body>
+</html>

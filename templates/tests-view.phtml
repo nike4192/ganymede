@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<?php
+
+require_once $_SERVER['DOCUMENT_ROOT'] . '/php/constants.php';
+require_once PHPROOT . '/authorized.php';
+require_once PHPROOT . '/tests-module.php';
+
+$authorized = check_auth();
+
+$PAGE_TESTS_COUNT = 50;
+$TESTS_COUNT = get_tests_count();
+
+function print_tests($from = 0, $to = 10, $with_attempts = false) {
+
+	global $link;
+
+	$authorized = check_auth();
+
+	$list_tests = get_list_tests($from, $to, $with_attempts); // with attempts
+
+	$extract_props = ['test_title'];
+
+	foreach ($list_tests as $test) {
+		
+		$test_id = $test['test_id'];
+
+		$data = array_intersect_key($test, array_flip($extract_props));
+		$data['test_href'] = '?' . http_build_query(['test_id' => $test_id]);
+		$data['tasks_count'] = count($test['tasks']);
+
+		if ($authorized && $with_attempts) {
+
+			$user_id = @$_COOKIE['ganymede_id'];
+
+			$query = "
+				SELECT id, JSON_EXTRACT(json_data, '$.score') AS score, `datetime`
+				FROM geom_user_tests
+				WHERE user_id = '" . $user_id . "' AND test_id = '" . $test_id . "'
+				ORDER BY `datetime` DESC;";
+
+			$attempts = [];
+
+			if ($result = $link->query($query)) {
+
+				while($row = $result->fetch_assoc()) {
+
+					$row['href'] = '?attempt_id=' . $row['id'];
+
+					array_push($attempts, $row);
+
+				}
+				
+				$result->free();
+
+			} else {
+
+				echo $link->error;
+
+			}
+
+			$data['attempts'] = $attempts;
+
+		}
+
+		Renderer::render('test-item.phtml', $data);
+
+	}
+
+}
+
+?>
+<html>
+	<head>
+		<title></title>
+
+		<link rel="stylesheet" type="text/css" href="/css/main.css">
+		<!-- <link rel="stylesheet" type="text/css" href="/css/tests-main.css"> -->
+
+		<script src="/js/query-script.js"></script>
+		
+		<style>
+
+			.article-item .item-info {
+				display: inline-flex;
+				float: right;
+			}
+			.article-item .item-info > * {
+				margin: 0 8px;
+			}
+
+			.attempts-item {
+				position: relative;
+			}
+
+			.attempts-item > .attempts-container {
+				display: none;
+			}
+			.attempts-item > .attempts-container[open] {
+				display: block;
+			}
+			.attempts-container {
+				z-index: 1;
+			}
+
+			.attempts-item > .attempts-button {
+				background: none;
+				border: none;
+				font-size: 1em;
+				font-family: inherit;
+				border-radius: 4px;
+				box-shadow: 0 0 0 1px #555;
+			}
+			.attempts-item > .attempts-container {
+				position: absolute;
+				left: 50%;
+				margin-top: 4px;
+				margin-left: -75px;
+				width: 150px;
+				max-height: 140px;
+				border-radius: 4px;
+				background-color: white;
+				box-shadow: 0 0 0 1px #555;
+				overflow-y: auto;
+			}
+			.attempts-item > .attempts-container::-webkit-scrollbar {
+			    width: 8px;
+			}
+			.attempts-item > .attempts-container::-webkit-scrollbar-thumb {
+			  background-color: lightgray;
+			  border-radius: 4px;
+			}
+
+			.best-attempt-link {
+				padding: 1px 6px;
+				border-radius: 4px;
+				color: black;
+				text-decoration: none;
+			}
+			.attempts-container > .attempt-link {
+				padding: .5em .8em;
+				position: relative;
+				display: block;
+				height: 35px;
+				box-sizing: border-box;
+				text-decoration: none;
+				color: black;
+				outline: none;
+			}
+			.attempts-container > .attempt-link:focus::after {
+				content: '';
+				position: absolute;
+				top: 0; right: 0; bottom: 0; left: 0;
+				box-shadow: inset 0 0 0 2px #29f;
+			}
+			.attempt-link > .attempt-title {
+				position: relative;
+				display: block;
+				z-index: 1;
+			}
+			.attempt-link > .progress-bar {
+				position: absolute;
+				top: 0; left: 0; bottom: 0;
+			}
+			.attempts-container > .attempt-link:hover {
+				text-decoration: underline;
+			}
+
+		</style>
+	</head>
+	<body>
+		<?php include('header.phtml'); ?>
+		<div class="container">
+			<main>
+				<article class="main-article">
+					<h2 class="article-heading">Тесты</h2>
+					<?php
+
+						if (!$authorized) {
+
+							$data = ['message' => 'Проверка тестов только для авторизованных пользователей'];
+
+							Renderer::render('notification.phtml', $data);
+
+						}
+
+					?>
+					<section class="list-container">
+						<?php
+
+							$page_number = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+							$max_page_counts = ceil($TESTS_COUNT / $PAGE_TESTS_COUNT);
+
+							$page_number = min($page_number, $max_page_counts);
+							$page_index = $page_number - 1;
+
+							$offset = $page_index * $PAGE_TESTS_COUNT;
+							$count = $PAGE_TESTS_COUNT;
+
+							print_tests($offset, $count, true);
+
+						?>
+					</section>
+				</article>
+			</main>
+			<script>
+				
+				var attemptsItems = QSA('.attempts-item');
+
+				function colorByScore( score ) { // score [0 - 100]
+
+					if (score) {
+
+						var hue = score * 120 / 100;
+						return 'hsl(' + hue + 'deg, 90%, 60%)';
+
+					} else {
+
+						return 'lightgray';
+
+					}
+				}
+
+				attemptsItems.forEach( function( attemptsItem ) {
+
+					var dataElement = attemptsItem.querySelector('data');
+
+					try {
+
+						var attempts = JSON.parse(dataElement.textContent);
+
+						if (attempts && Array.isArray(attempts)) {
+
+							var attemptsContainer = qElement('.attempts-container');
+
+							var attemptsButton = attemptsItem.querySelector('.attempts-button');
+							attemptsButton.onclick = function() {
+
+								attemptsContainer.toggleAttribute('open');
+
+								window.addEventListener('click', function(e) {
+
+									if (!attemptsItem.contains(e.target)) {
+
+										attemptsContainer.removeAttribute('open');
+
+									}
+
+								} );
+
+							}
+
+							var bestAttempt = attempts[0];
+
+							attempts.forEach( function( attemptData ) {
+
+								var score = parseFloat(attemptData['score']);
+								if (parseFloat(bestAttempt.score) < score) {
+
+									bestAttempt = attemptData;
+
+								}
+
+								var attemptLink = qElement('a.attempt-link');
+								attemptLink.href = attemptData['href'];
+								attemptLink.title = attemptData['datetime'];
+
+								var spanElement = qElement('span.attempt-title');
+								spanElement.textContent = score + '%';
+
+								if (score < 50) {
+
+									spanElement.style.textAlign = 'right';
+
+								} else {
+
+									spanElement.style.color =
+									spanElement.style.textDecorationColor = 'white';
+
+								}
+
+								var progressBar = qElement('.progress-bar');
+								progressBar.style.width = score + '%';
+
+								var progressColor = colorByScore(score);
+								progressBar.style.backgroundColor = progressColor;
+
+								attemptLink.append(progressBar, spanElement);
+								attemptsContainer.append(attemptLink);
+
+							} );
+
+							console.log(bestAttempt);
+
+							dataElement.remove();
+							attemptsItem.append(attemptsContainer);
+
+						}
+
+						var bestAttemptLink = qElement('a.best-attempt-link');
+
+						bestAttemptLink.href = bestAttempt.href;
+						bestAttemptLink.title = 'Лучшая попытка\n' + bestAttempt.datetime;
+						bestAttemptLink.textContent = bestAttempt.score;
+						bestAttemptLink.style.backgroundColor = colorByScore(bestAttempt.score);
+
+						attemptsItem.parentElement
+							.insertBefore(bestAttemptLink, attemptsItem.nextSibling);
+
+					} catch (e) {}
+
+				} );
+
+			</script>
+		</div>
+	</body>
+</html>

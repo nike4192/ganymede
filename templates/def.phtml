@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+
+		<link rel="stylesheet" href="/css/main.css">
+
+		<style>
+			
+			section > .def-image {
+				margin-right: 2em;
+				max-width: 30%;
+				float: left;
+			}
+
+		</style>
+	</head>
+	<body>
+		<?php include('header.phtml');?>
+		<div class="container">
+			<main>
+				<article class="main-article">
+					<h2 class="article-heading"><?=@$def['def_title'];?></h2>
+					<section>
+						<img class="def-image"src="<?=@$def['def_image_src'];?>">
+						<p><?=@$def['def_content'];?></p>
+					</section>
+				</article>
+			</main>
+		</div>
+	</body>
+</html>

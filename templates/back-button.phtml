@@ -1,0 +1,173 @@
+<script src="/js/TimeRunner.js"></script>
+<style>
+	
+	#back-link-button {
+		padding: 0.5em 16px;
+		position: fixed;
+		top: 60px; left: -4px;
+		width: 150px;
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		font-size: 0.8em;
+		border: none;
+		background: white;
+		text-decoration: none;
+		border: 4px solid #eee9cf;
+		border-radius: 0 4px 4px 0;
+		outline: none;
+		overflow: hidden;
+		animation-name: hide-back-link-button;
+	}
+	#back-link-button,
+	#back-link-button > span,
+	#back-link-button > svg {
+		animation-delay: 2s;
+		animation-duration: 400ms;
+		animation-fill-mode: both;
+		animation-direction: inherit;
+		animation-play-state: inherit;
+	}
+	#back-link-button > span {
+		padding: 0 0.5em;
+		color: #232323;
+		font-family: Arial;
+		text-transform: uppercase;
+		font-style: italic;
+		letter-spacing: 0.1em;
+		animation-name: hide-span;
+	}
+
+	#back-link-button:hover,
+	#back-link-button:hover > span,
+	#back-link-button:hover > svg {
+		animation-name: none;
+	}
+	#back-link-button:hover > span {
+		text-decoration: underline;
+	}
+	#back-link-button > * {
+		display: inline-block;
+	}
+	#back-link-button > svg {
+		flex-shrink: 0;
+		width: 1.2em;
+		height: 1.2em;
+		stroke: #232323;
+		animation-name: hide-svg-path;
+	}
+	#back-link-button > svg > path {
+		stroke-linejoin: round;
+		stroke-linecap: round;
+		stroke-width: 3px;
+		fill: none;
+	}
+
+	@keyframes hide-back-link-button {
+
+		to {
+			width: 32px;
+			background: #fff0;
+			border: 4px solid #eee9cf00;
+			transform: translateX(-14px);
+		}
+
+	}
+
+	@keyframes hide-svg-path {
+
+		to {
+			stroke: #0002;
+		}
+
+	}
+
+	@keyframes hide-span {
+
+		to {
+			opacity: 0;
+		}
+
+	}
+
+</style>
+
+<a id="back-link-button" href="<?=@$back_href;?>">
+	<svg viewBox="0 0 32 32">
+		<path d="M24.5 4 L4 16 L24.5 28 Z"></path>
+	</svg>
+	<span>Вернуться</span>
+</a>
+
+<script>
+
+	function interpolation(x, range) {
+
+		return (range[1] - range[0]) * x + range[0];
+
+	}
+	
+	var backLinkButton = document.getElementById('back-link-button');
+
+	if (localStorage.backLinkButtonHidden !== undefined) {
+
+		var backLinkButtonHidden = JSON.parse(localStorage.backLinkButtonHidden);
+
+		if (backLinkButtonHidden) {
+
+			backLinkButton.style.animationDirection = 'reverse';
+			backLinkButton.style.animationPlayState = 'paused';
+
+		}
+
+	}
+
+	backLinkButton.addEventListener('mouseenter', function() {
+
+		if (backLinkButton.style) {
+
+			backLinkButton.style = '';
+
+		}
+
+		localStorage.backLinkButtonHidden = JSON.stringify(false);
+
+	} );
+
+	backLinkButton.addEventListener('animationend', function() {
+
+		localStorage.backLinkButtonHidden = JSON.stringify(true);
+
+	} )
+/*
+	backLinkButton.widthRange = [32, backLinkButton.offsetWidth];
+
+	var timeRunner = new TimeRunner( function(x) {
+
+		backLinkButton.style.width = interpolation(x, backLinkButton.widthRange) + 'px';
+
+	}, {
+
+		duration: 400
+
+	} );
+
+	backLinkButton.onmouseenter = function() {
+
+		timeRunner.stop();
+
+		backLinkButton.style.width = '';
+
+	}
+
+	backLinkButton.onmouseleave = function() {
+
+		setTimeout(function() {
+
+			timeRunner.reverse()
+
+		}, 1000);
+
+	}*/
+
+</script>

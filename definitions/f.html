@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+
+		<script src="/js/Math+.js"></script>
+
+		<script>
+			
+			function Figure(params) {
+
+				this.rotation = params.rotation;
+
+				this.groups = params.groups.map(function(group) {
+
+					return new FigureGroup(group);
+
+				} )
+
+			}
+
+			Object.assign(Figure.prototype, {
+
+
+
+			} );
+
+			function FigureGroup(group) {
+
+				this.extra = group.extra;
+				this.dashed = group.dashed;
+				this.hidden = group.hidden;
+				this.relations = group.relations ? group.relations : {};
+
+				switch(group.type) {
+
+					case 'bufferGeometry':
+
+						this.position = [];
+						this.size = group ? group.size : 2;
+
+						var size = group.size;
+						var position = group.position;
+
+						for (var i = 0; i < position.length; i += size) {
+
+							var x = size > 0 ? position[i + 0] : 0;
+							var y = size > 1 ? position[i + 1] : 0;
+							var z = size > 2 ? position[i + 2] : 0;
+
+							var vec3 = new Math.Vector3(x, y, z);
+
+							this.position.push(vec3);
+
+						}
+
+						break;
+
+					case 'circle':
+
+						this.position = [];
+						this.size = 2;
+
+						var radius = group.radius;
+						var angle = group.angle ? group.angle * Math.PI / 180 : 0;
+						var stepAngle = 2 * Math.PI / group.segments;
+
+						for (var i = 0; i < group.segments; i++) {
+
+							angle += stepAngle;
+
+							var cosa = Math.cos(angle),
+								sina = Math.sin(angle);
+
+							var x = cosa * radius;
+							var y = - sina * radius;
+							var z = 0;
+
+							var vec3 = new Math.Vector3(x, y, z);
+
+							this.position.push(vec3);
+
+						}
+
+				}
+
+			}
+
+			function Point(x, y, figure) {
+
+				this.x = x;
+				this.y = y;
+
+				this.figure = figure;
+
+			}
+			
+			function FigureView(canvas, figure) {
+
+				var scope = this;
+
+				this.pointStyle = 'gray'
+				this.pointRadius = 5;
+
+				this.canvas = canvas || document.createElement('canvas');
+				this.ctx = this.canvas.getContext('2d');
+
+				var canvas = this.canvas;
+				var ctx = this.ctx;
+
+				ctx.font = '14px Arial';
+				ctx.lineJoin = 'round';
+				ctx.textBaseline = 'middle';
+				ctx.textAlign = 'center';
+
+				var scoef = 0.4;
+				var scale = scoef * Math.min(canvas.width, canvas.height) / 2;
+
+				var tx = canvas.width / 2,
+					ty = canvas.height / 2;
+
+				this.viewMatrix = new Math.Matrix3().
+					translate(tx, ty);
+				this.updateView();
+
+				ctx.lineWidth = 2;
+
+				this.position = new Math.Vector3(0, 0, 0);
+				this.rotation = new Math.Euler(0, 0, 0);
+				this.scale = new Math.Vector3(scale, scale, scale);
+
+				if (figure) {
+
+					this.figure = figure;
+
+					if (figure.rotation) {
+
+						var rotation = figure.rotation.map(v => v * Math.PI / 180);
+						this.rotation.fromArray(rotation);
+
+					}
+
+				}
+
+				this.matrix = new Math.Matrix4();
+				this.updateMatrix();
+
+				var mouse = {
+
+					down: false
+
+				};
+
+				canvas.addEventListener('mousemove', function(e) {
+
+					if (mouse.down) {
+
+						var x = e.offsetX,
+							y = e.offsetY;
+
+						var point = scope.getPointFromRend(x, y);
+
+						if (point) {
+
+							scope.hoverPoint = point;
+
+						} else {
+
+							delete scope.hoverPoint;
+
+						}
+
+					} else {
+
+						if (scope.activePoint) {
+
+
+
+						}
+
+					}
+
+					scope.render();
+
+				} );
+
+				canvas.addEventListener('mousedown', function(e) {
+
+					if (e.button === 0) {
+
+						mouse.down = true;
+
+						var x = e.offsetX,
+							y = e.offsetY;
+
+						var point = scope.getPointFromRend(x, y);
+
+						if (point) {
+
+							scope.activePoint = point;
+
+						} else {
+
+							delete scope.activePoint;
+
+						}
+
+					}
+
+				} );
+
+				canvas.addEventListener('mouseup', function(e) {
+
+					if (e.button === 0) {
+
+						mouse.down = false;
+
+						delete scope.activePoint;
+
+					}
+
+				} );
+
+			}
+
+			Object.assign(FigureView.prototype, {
+
+				getPointFromRend: function(x, y) {
+
+					var radius = this.pointRadius;
+					var radiusQuad = radius * radius;
+
+					var ivm = new Math.Matrix3().getInverse(this.viewMatrix);
+					var mvec = new Math.Vector2(x, y).
+						applyMatrix3(ivm);
+
+					var figures = this.figures;
+
+					for (var i = 0; i < figures.length; i++) {
+
+						var figure = figures[i];
+						var rendPosition = figure.rendPosition;
+
+						for (var j = 0; j < rendPosition.length; j++) {
+
+							var rendVec = rendPosition[j];
+
+							var x = rendVec.x - mvec.x;
+							var y = rendVec.y - mvec.y;
+
+							if (x > radius || y > radius) continue;
+
+							if (x * x + y * y > radiusQuad) continue;
+
+							return new Point(rendVec.x, rendVec.y, figure);
+
+						}
+
+					}
+
+				},
+
+				updateView: function() {
+
+					var m = this.viewMatrix.elements;
+
+					this.ctx.setTransform(m[0], 0, 0, m[4], m[6], m[7]);
+
+				},
+
+				updateMatrix: function() {
+
+					var t = this.position,
+						r = this.rotation,
+						s = this.scale;
+
+					var tm = new Math.Matrix4().makeTranslation(t.x, t.y, t.z),
+						rm = new Math.Matrix4().makeRotationFromEuler(r),
+						sm = new Math.Matrix4().makeScale(s.x, s.y, s.z);
+
+					this.matrix
+						.identity()
+						.multiply(tm)
+						.multiply(rm)
+						.multiply(sm);
+
+				},
+
+				clearCanvas: function() {
+
+					var canvas = this.canvas;
+					var ctx = this.ctx;
+					var vme = this.viewMatrix.elements;
+
+					var x = 0 - vme[6],
+						y = 0 - vme[7],
+						width = canvas.width,
+						height = canvas.height;
+
+					ctx.clearRect(x, y, width, height);
+
+				},
+
+				render: function() {
+
+					var canvas = this.canvas;
+					var ctx = this.ctx;
+
+					var matrix = this.matrix;
+
+					this.clearCanvas();
+
+					ctx.beginPath();
+
+					var figure = this.figure;
+
+					figure.groups.forEach(function(group) {
+
+						var position = group.position;
+
+						var rendPosition = [];
+
+						for (var i = 0; i < position.length; i++) {
+
+							var rendVec = position[i].clone().applyMatrix4(matrix);
+
+							rendPosition.push(rendVec);
+
+						}
+
+						group.rendPosition = rendPosition;
+
+						/***********************************/
+
+						ctx.save();
+
+						var path = new Path2D();
+
+						var points = group.relations.points;
+						var sides = group.relations.sides;
+
+						var outside = group.clockwise ? 1 : -1;
+
+						if (group.dashed) {
+
+							ctx.setLineDash([5, 10]);
+
+						}
+
+						rendPosition.forEach(function(rendVec, index, array) {
+
+							var prev = array[index - 1] || array[array.length - 1];
+							var curr = rendVec;
+							var next = array[index + 1] || array[0];
+
+							if (points && points[index]) {
+
+								var left =  prev.clone().sub(rendVec).normalize();
+								var right = next.clone().sub(rendVec).normalize();
+
+								var pointVec = new Math.Vector3().
+									addVectors(left, right).
+									normalize().
+									multiplyScalar(10 * outside).
+									add(rendVec);
+
+								ctx.fillText(points[index], pointVec.x, pointVec.y);
+
+							}
+
+							if (sides && sides[index]) {
+
+								var normVec = new Math.Vector2().
+									subVectors(next, curr).
+									normalize().
+									rotateAround(new Math.Vector2(), Math.PI / 2).
+									multiplyScalar(outside * 10);
+
+								var sideVec = new Math.Vector2().
+									subVectors(next, curr).
+									divideScalar(2).
+									add(curr).
+									add(normVec);
+
+								ctx.fillText(sides[index], sideVec.x, sideVec.y);
+
+							}
+
+							if (!group.hidden) {
+
+								path.lineTo(rendVec.x, rendVec.y);
+
+							}
+
+						} )
+
+						path.closePath();
+
+						ctx.stroke(path);
+
+						ctx.restore();
+
+					} );
+
+					if (this.hoverPoint) {
+
+						var radius = this.pointRadius;
+						var p = this.hoverPoint;
+
+						ctx.save();
+
+						ctx.fillStyle = this.pointStyle;
+						ctx.arc(p.x, p.y, radius, 0, 2 * Math.PI);
+						ctx.fill();
+
+
+						ctx.restore();
+
+					}
+
+				}
+
+			} );
+
+		</script>
+
+		<style>
+			
+			canvas {
+				width: 600px;
+				height: 300px;
+				background-color: #4ff;
+			}
+
+			input {
+				display: block;
+			}
+
+			input[name]::after {
+
+				margin: 100%;
+				content: attr(name);
+
+			}
+
+		</style>
+	</head>
+	<body>
+		<canvas></canvas>
+		<input type="checkbox" name="points">
+		<input type="checkbox" name="sides">
+		<input type="checkbox" name="angles">
+		<script>
+
+			var canvas = document.querySelector('canvas');
+
+			canvas.width = canvas.offsetWidth;
+			canvas.height = canvas.offsetHeight;
+
+			var o1 = {
+
+				"groups": [
+					{
+						"type": "circle",
+						"segments": 50,
+						"radius": 1
+					},
+					{
+						"type": "bufferGeometry",
+						"extra": "радиус",
+						"dashed": true,
+						"size": 2,
+						"clockwise": true,
+						"position": [0, 0, 1, 0],
+						"relations": {
+							"sides": "r"
+						}
+
+					}
+				]
+
+
+			}
+
+			var o2 = {
+				"groups": [
+					{
+						"type": "circle",
+						"angle": 30,
+						"center": [0, 0, 0],
+						"normal": [0, 0, 1],
+						"segments": 6,
+						"relations": {
+							"points": 'ABCDEF',
+						},
+						"radius": 1
+					},
+					{
+						"type": "bufferGeometry",
+						"extra": "радиус описанной окружности",
+						"dashed": true,
+						"size": 2,
+						"clockwise": true,
+						"position": [0, 0, 0, -1],
+						"relations": {
+							"sides": "R"
+						}
+					},
+					{
+						"type": "bufferGeometry",
+						"extra": "радиус вписанной окружности",
+						"dashed": true,
+						"size": 2,
+						"clockwise": true,
+						"position": [0, 0, 0.93, 0],
+						"relations": {
+							"sides": "r"
+						}
+					}
+				]
+			}
+
+			var o3 = {
+				groups: [
+					{
+						"type": "bufferGeometry",
+						"size": 2,
+						"clockwise": true,
+						"position": [-1, -1, 1, -1, 1, 1, -1, 1],
+						"relations": {
+							"points": 'ABCD',
+							"sides": 'aaaa',
+							"angles": [90, 90, 90, 90]
+						}
+					}
+				]
+			};
+
+			var cube = {
+				"rotation": [20, 20, 0],
+				"groups": [
+					{
+						"type": "bufferGeometry",
+						"size": 3,
+						"dashed": true,
+						"position": [-1, -1, 1, -1, 1, 1]
+					},
+					{
+						"type": "bufferGeometry",
+						"size": 3,
+						"position": [-1, 1, -1, 1, 1, -1, 1, 1, 1, -1, 1, 1],
+						"hidden": true,
+						"relations": {
+							"points": ['A1', 'B1', 'C1', 'D1']
+						}
+					}
+				]
+			};
+
+			var f = new Figure(cube);
+			var fv = new FigureView(canvas, f);
+
+			fv.render();
+
+		</script>
+	</body>
+</html>

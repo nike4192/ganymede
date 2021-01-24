@@ -1,0 +1,27 @@
+[ hidden ] { display: none; }
+
+svg { stroke: inherit; fill: inherit; }
+
+svg[ source ] {
+	width: 0; height: 0;
+	position: absolute;
+	visibility: hidden;
+}
+
+svg[ icon ] { float: left; }
+
+svg[ icon ],
+svg[ icon ][ size = "4" ] { width: 16px; height: 16px; }
+svg[ icon ][ size = "5" ] { width: 32px; height: 32px; }
+svg[ icon ][ size = "6" ] { width: 64px; height: 64px; }
+svg[ icon ][ size = "7" ] { width: 128px; height: 128px; }
+svg[ icon ][ size = "8" ] { width: 256px; height: 256px; }
+
+svg[ icon ] path,
+svg[ icon ] text { stroke: inherit; fill: inherit; }
+
+path:not( [ stroke ] ),
+text:not( [ stroke ] ) { stroke: none; }
+
+path:not( [ fill ] ),
+text:not( [ fill ] ) { fill: none; }

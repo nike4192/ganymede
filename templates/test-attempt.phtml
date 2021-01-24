@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<?php
+
+	require_once $_SERVER['DOCUMENT_ROOT'] . '/php/constants.php';
+	require_once PHPROOT . '/renderer.php';
+
+?>
+<html>
+	<head>
+		<title></title>
+	</head>
+	<body>
+		<?php include('header.phtml');?>
+		<div class="container">
+			<main>
+				<article test_id="<?=@$test['test_id'];?>" class="test-article">
+					<h2 class="test-heading"><?=@$test['test_title'];?></h2>
+					<?php
+
+						if (!$authorized) {
+
+							$data = ['message' => 'Проверка тестов только для авторизованных пользователей'];
+
+							Renderer::render('notification.phtml', $data);
+
+						}
+
+					?>
+					<section>
+						<?php
+
+							if (isset($test['tasks'])) {
+
+								$counter = 0;
+								$tasks = $test['tasks'];
+								$tasks_count = count($tasks);
+
+								foreach ($tasks as $task) {
+
+									$data = [
+										'task' => $task,
+										'task_number' => ++$counter,
+										'tasks_count' => $tasks_count
+									];
+
+									Renderer::render('task-item.phtml', $data);
+
+								}
+
+							}
+
+						?>
+					</section>
+					<section class="flex flex-jc-center">
+						<?php
+
+							if (check_auth()) {
+
+								$query_data = ['test_id' => $test['test_id']];
+
+								echo '
+									<a id="anew-test-link" href="?' . http_build_query($query_data) . '">Заново пройти тест</a>';
+
+							}
+
+						?>
+					</section>
+				</article>
+			</main>
+		</div>
+	</body>
+</html>
