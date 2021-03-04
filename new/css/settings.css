@@ -1,0 +1,33 @@
+@import './fonts.css';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  font-family: 'NK63';
+}
+
+a {
+  text-decoration: none;
+  color: black;
+}
+
+ul, li {
+  list-style: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: #ece9d7;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-top: 70px;
+  overflow: hidden;
+}
